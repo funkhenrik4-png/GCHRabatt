@@ -1,0 +1,24 @@
+body { 
+  font-family: Arial, sans-serif; 
+  margin: 20px;
+}
+
+.green { 
+  color: green; 
+  font-weight: bold; 
+}
+
+.red { 
+  color: red; 
+  font-weight: bold; 
+}
+
+table, th, td { 
+  border: 1px solid black; 
+  border-collapse: collapse; 
+  padding: 5px; 
+}
+
+input, select, textarea, button { 
+  margin: 5px 0; 
+}
