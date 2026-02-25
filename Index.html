@@ -7,7 +7,42 @@
 <script src="script.js"></script>
 </head>
 <body>
+
 <h1>Golf Simulator Buchung</h1>
-<p>Testseite – funktioniert!</p>
+
+<!-- Buchungsbereich -->
+<div id="bookingSection">
+  <label>Datum:</label><input type="date" id="date"><br>
+  <label>Start:</label><input type="time" id="start"><br>
+  <label>Ende:</label><input type="time" id="end"><br>
+  <label>Anzahl Spieler:</label><input type="number" id="numPlayers" min="3"><br>
+  <label>Simulator:</label>
+  <select id="simulator">
+    <option>1</option><option>2</option><option>3</option>
+    <option>4</option><option>5</option><option>6</option>
+    <option>7</option><option>8</option>
+  </select><br>
+  <label>Spieler DGV-Nummern (Komma getrennt):</label><br>
+  <textarea id="playerNumbers"></textarea><br>
+  <button onclick="book()">Buchen / Prüfen</button>
+  <div id="bookingResult"></div>
+</div>
+
+<hr>
+
+<!-- Adminbereich -->
+<div id="adminSection" style="display:none;">
+  <h2>Adminbereich</h2>
+  <label>Passwort:</label><input type="password" id="adminPass">
+  <button onclick="unlockAdmin()">Adminbereich freischalten</button>
+
+  <div id="adminPanel" style="display:none;">
+    <h3>Spielerverwaltung</h3>
+    <div id="playerTable"></div>
+    <h3>Buchungen & Statistiken</h3>
+    <div id="stats"></div>
+  </div>
+</div>
+
 </body>
 </html>
