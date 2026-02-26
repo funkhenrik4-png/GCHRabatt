@@ -2,7 +2,7 @@
 const adminPassword = "Matchplay";
 
 // Google Sheets Web App URL
-const webAppUrl = "DEINE_GOOGLE_SCRIPT_URL_HIER"; // <--- hier deine Web App URL einfügen
+const webAppUrl = "https://script.google.com/macros/s/AKfycbyMAmm3PeYFIrskjTYoMiIrbhN9HqZG_CrLvlsPD-MrWZhSjqFrlpoTzneumLlLcbcV/exec"; // <--- hier deine Web App URL einfügen
 
 // Bisherige Nutzung pro AK (Stunden)
 let akUsage = {};
