@@ -2,16 +2,10 @@
 const adminPassword = "Matchplay";
 
 // Google Sheets Web App URL
-const webAppUrl = "https://script.google.com/macros/s/AKfycbyMAmm3PeYFIrskjTYoMiIrbhN9HqZG_CrLvlsPD-MrWZhSjqFrlpoTzneumLlLcbcV/exec"; // <--- hier deine Web App URL einfügen
-
-// Bisherige Nutzung pro AK (Stunden)
-let akUsage = {};
+const webAppUrl = "DEINE_GOOGLE_SCRIPT_URL_HIER"; // <--- hier deine Web App URL einfügen
 
 // Alle Buchungen speichern
 let bookings = [];
-
-// Spieler-Daten aus Sheets
-let playerAK = {};
 
 // Dauer in Stunden berechnen
 function calculateDuration(start, end) {
@@ -20,16 +14,21 @@ function calculateDuration(start, end) {
   return (eh + em/60) - (sh + sm/60);
 }
 
-// Spieler-Daten aus Google Sheet laden
+// Spieler-Daten aus Google Sheets laden
+let playerAK = {};
+let akUsage = {}; // genutzte Stunden pro AK
+
 function loadPlayerData(callback) {
   fetch(webAppUrl)
     .then(res => res.json())
     .then(data => {
-      playerAK = data; // z.B. { "123": "AK30", "124": "AK30" }
-      // AK-Usage initialisieren
+      playerAK = {};
       akUsage = {};
-      Object.values(playerAK).forEach(ak => {
-        if (!akUsage[ak]) akUsage[ak] = 0;
+      // Alle Keys aus Sheet holen
+      Object.keys(data).forEach(key => {
+        const n = Number(key); // Zahl konvertieren, falls nötig
+        playerAK[n] = data[key];
+        if(!akUsage[data[key]]) akUsage[data[key]] = 0;
       });
       if(callback) callback();
     })
@@ -65,8 +64,9 @@ function book() {
   const akSet = new Set();
   let unknownPlayers = [];
   playerNumbers.forEach(num => {
-    if(playerAK[num]) {
-      akSet.add(playerAK[num]);
+    const n = Number(num); // Text → Zahl
+    if(playerAK[n]) {
+      akSet.add(playerAK[n]);
     } else {
       unknownPlayers.push(num);
     }
