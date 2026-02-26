@@ -1,4 +1,4 @@
-const adminPassword = "geheimespasswort"; // ändere das Passwort auf ein sicheres
+const adminPassword = "matchplay"; // ändere das Passwort auf ein sicheres
 
 function unlockAdmin(){
   let input = document.getElementById("adminPass").value;
