@@ -1,105 +1,161 @@
-const webAppUrl = "https://script.google.com/macros/s/AKfycbybwhWvvO_Qb0UhbN_GYTQmLamEh0p6Bx_fbkDO-G3iIpKB7r6uC0inRG1sQIUFTnhceg/exec";
-const adminPassword = "Matchplay";
-const MAX_HOURS_PER_AK = 4;
+/************************************************
+ * GCH RABATT – FRONTEND SCRIPT
+ ************************************************/
 
+// 🔗 HIER DEINE GOOGLE APPS SCRIPT URL
+const webAppUrl = "HIER_DEINE_WEBAPP_URL_EINFÜGEN";
+
+// 🔐 Admin-Passwort
+const adminPassword = "Matchplay";
+
+// Daten aus Google Sheets
 let playerAK = {};
 let bookings = [];
-let akUsage = {};
 
 /* =========================
-   SPIELER LADEN (BLOCKIEREND)
+   INITIAL LADEN
    ========================= */
 window.onload = async () => {
+  await loadDataFromSheets();
+};
+
+/* =========================
+   DATEN LADEN
+   ========================= */
+async function loadDataFromSheets() {
   const res = await fetch(webAppUrl);
   const data = await res.json();
 
-  // 🔒 ABSICHERUNG: ALLE KEYS ALS STRING
-  playerAK = {};
-  Object.keys(data).forEach(k => {
-    playerAK[String(k).trim()] = String(data[k]).trim();
-  });
+  playerAK = data.players || {};
+  bookings = data.bookings || [];
 
-  console.log("✅ Spieler geladen:", playerAK);
-};
-
-/* ========================= */
-function calcDuration(start, end) {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  return (eh * 60 + em - (sh * 60 + sm)) / 60;
-}
-
-function showResult(msg, ok) {
-  const el = document.getElementById("bookingResult");
-  el.innerText = msg;
-  el.style.color = ok ? "lime" : "red";
+  console.log("Spieler:", playerAK);
+  console.log("Buchungen:", bookings);
 }
 
 /* =========================
-   BUCHEN
+   BUCHUNG
    ========================= */
 function book() {
   const date = document.getElementById("date").value;
   const start = document.getElementById("start").value;
   const end = document.getElementById("end").value;
+  const simulator = document.getElementById("simulator").value;
   const numPlayers = parseInt(document.getElementById("numPlayers").value);
-
-  // 🔒 HIER IST DER FIX
-  const players = document
+  const playerNumbers = document
     .getElementById("playerNumbers")
-    .value
-    .split(",")
-    .map(p => String(p).trim());
+    .value.split(",")
+    .map(p => p.trim())
+    .filter(p => p !== "");
 
-  if (!date || !start || !end || players.length !== numPlayers) {
-    showResult("Bitte alle Felder korrekt ausfüllen", false);
+  if (!date || !start || !end || !numPlayers || playerNumbers.length === 0) {
+    showResult("Bitte alle Felder ausfüllen", false);
     return;
   }
 
-  let akSet = new Set();
-  let unknown = [];
-
-  players.forEach(p => {
-    if (playerAK.hasOwnProperty(p)) {
-      akSet.add(playerAK[p]);
-    } else {
-      unknown.push(p);
-    }
-  });
-
-  if (unknown.length > 0) {
-    showResult("Unbekannte Spieler: " + unknown.join(", "), false);
-    console.error("❌ Unbekannt:", unknown, " | Verfügbar:", Object.keys(playerAK));
+  if (playerNumbers.length !== numPlayers) {
+    showResult("Anzahl Spieler passt nicht", false);
     return;
+  }
+
+  // AK prüfen
+  const akSet = new Set();
+  for (let p of playerNumbers) {
+    if (!playerAK[p]) {
+      showResult("Unbekannter Spieler: " + p, false);
+      return;
+    }
+    akSet.add(playerAK[p]);
   }
 
   if (akSet.size !== 1) {
-    showResult("Spieler gehören zu unterschiedlichen AKs", false);
+    showResult("Spieler müssen in derselben AK sein", false);
     return;
   }
 
   const ak = [...akSet][0];
-  const duration = calcDuration(start, end);
-  akUsage[ak] = akUsage[ak] || 0;
 
-  if (akUsage[ak] + duration > MAX_HOURS_PER_AK) {
-    showResult(`Kontingent für ${ak} ausgeschöpft`, false);
-    return;
-  }
-
-  bookings.push({ date, start, end, ak, players });
-  akUsage[ak] += duration;
-
-  showResult("Gebucht ✅", true);
+  // ➜ BUCHUNG AN GOOGLE SHEETS SENDEN
+  fetch(webAppUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      date,
+      start,
+      end,
+      simulator,
+      ak,
+      players: playerNumbers
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "ok") {
+        showResult("Gebucht ✅ – Preis: " + data.price + " €", true);
+        loadAdminData();
+      } else {
+        showResult("Fehler beim Speichern", false);
+      }
+    })
+    .catch(() => {
+      showResult("Verbindungsfehler", false);
+    });
 }
 
 /* =========================
-   ADMIN
+   MELDUNG
+   ========================= */
+function showResult(text, success) {
+  const el = document.getElementById("bookingResult");
+  el.innerText = text;
+  el.style.color = success ? "lime" : "red";
+}
+
+/* =========================
+   ADMIN LOGIN
    ========================= */
 function unlockAdmin() {
-  if (document.getElementById("adminPass").value === adminPassword) {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === adminPassword) {
     document.getElementById("adminPanel").style.display = "block";
+    loadAdminData();
   } else {
     alert("Falsches Passwort");
   }
+}
+
+/* =========================
+   ADMIN DATEN (AUS SHEETS)
+   ========================= */
+function loadAdminData() {
+  fetch(webAppUrl)
+    .then(res => res.json())
+    .then(data => {
+      bookings = data.bookings || [];
+
+      const div = document.getElementById("adminBookings");
+
+      if (bookings.length === 0) {
+        div.innerHTML = "<p>Keine Buchungen vorhanden</p>";
+        return;
+      }
+
+      let html =
+        "<table><tr><th>Datum</th><th>Start</th><th>Ende</th><th>Simulator</th><th>AK</th><th>Spieler</th><th>Preis</th></tr>";
+
+      bookings.forEach(b => {
+        html += `<tr>
+          <td>${b.date}</td>
+          <td>${b.start}</td>
+          <td>${b.end}</td>
+          <td>${b.simulator}</td>
+          <td>${b.ak}</td>
+          <td>${b.players}</td>
+          <td>${b.price}</td>
+        </tr>`;
+      });
+
+      html += "</table>";
+      div.innerHTML = html;
+    });
 }
