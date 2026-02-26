@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Golf Simulator Buchung</title>
+<title>GCH Rabatt Check</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -135,27 +135,27 @@
     </form>
 
     <div id="bookingResult"></div>
-</section>
+  </section>
 
-<hr>
+  <hr>
 
-<!-- Adminbereich -->
-<section class="admin-section">
-  <h2>Adminbereich</h2>
-  <div class="form-group">
-    <label>Passwort:</label>
-    <input type="password" id="adminPass">
-    <button onclick="unlockAdmin()" class="btn">Adminbereich freischalten</button>
-  </div>
+  <!-- Adminbereich -->
+  <section class="admin-section">
+    <h2>Adminbereich</h2>
+    <div class="form-group">
+      <label>Passwort:</label>
+      <input type="password" id="adminPass">
+      <button onclick="unlockAdmin()" class="btn">Adminbereich freischalten</button>
+    </div>
 
-  <div id="adminPanel" style="display:none;">
-    <h3>Spielerverwaltung</h3>
-    <div id="playerTable" class="table-container"></div>
+    <div id="adminPanel" style="display:none;">
+      <h3>Spielerverwaltung</h3>
+      <div id="playerTable" class="table-container"></div>
 
-    <h3>Buchungen & Statistiken</h3>
-    <div id="stats" class="table-container"></div>
-  </div>
-</section>
+      <h3>Buchungen & Statistiken</h3>
+      <div id="stats" class="table-container"></div>
+    </div>
+  </section>
 
 </div>
 <script src="script.js"></script>
