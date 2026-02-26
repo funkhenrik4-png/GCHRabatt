@@ -4,7 +4,7 @@
  ************************************************/
 
 // 🔗 Web-App URL
-const webAppUrl = "https://script.google.com/macros/s/AKfycbwiJz2OC2CoNYzKWXy3qsPT6dycxA2mDn9Jh_LDZmbTRp2dcPeSVlLWwa82egVNzYHr3g/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbznW9L_T4nX1i6HLQqmN5d35SgL_Zw_tEiLFI52KLiCJF6Vv5-Z9mgwLQ8g4EphmY408Q/exec";
 
 // 🔐 Admin Passwort
 const adminPassword = "Matchplay";
