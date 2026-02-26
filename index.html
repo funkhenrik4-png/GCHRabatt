@@ -8,9 +8,11 @@
 <body>
 <div class="container">
 
+  <!-- Kopfzeile mit Logo -->
   <header>
-    <h1>Golf Simulator Buchung</h1>
-    <p>Prüfe AK-Kontingente & buche bequem online</p>
+    <img src="https://static.wixstatic.com/media/16c056_598f2c9dd2764e12b792f9e8343495ed~mv2.png/v1/fill/w_1042,h_601,al_c,q_90,enc_avif,quality_auto/Matchplay_Logo_V4_WHITE.png" alt="GCH Logo" class="logo">
+    <h1>GCH Rabatt Check</h1>
+    <p>AK-Rabatt & Übersicht</p>
   </header>
 
   <!-- Buchungsformular -->
@@ -24,12 +26,12 @@
 
       <div class="form-group">
         <label>Startzeit:</label>
-        <input type="time" id="start" required>
+        <input type="time" id="start" step="1800" required>
       </div>
 
       <div class="form-group">
         <label>Endzeit:</label>
-        <input type="time" id="end" required>
+        <input type="time" id="end" step="1800" required>
       </div>
 
       <div class="form-group">
@@ -48,7 +50,15 @@
 
       <div class="form-group">
         <label>Anzahl Spieler:</label>
-        <input type="number" id="numPlayers" min="3" required>
+        <select id="numPlayers" required>
+          <option value="">-- wählen --</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -83,7 +93,6 @@
   </section>
 
 </div>
-
 <script src="script.js"></script>
 </body>
 </html>
