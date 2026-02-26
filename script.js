@@ -1,175 +1,178 @@
-// Admin-Passwort
+/***********************
+ * KONFIGURATION
+ ***********************/
+const webAppUrl = "https://script.google.com/macros/s/AKfycbybwhWvvO_Qb0UhbN_GYTQmLamEh0p6Bx_fbkDO-G3iIpKB7r6uC0inRG1sQIUFTnhceg/exec";
 const adminPassword = "Matchplay";
+const MAX_HOURS_PER_AK = 4;
 
-// Google Sheets Web App URL
-const webAppUrl = "DEINE_GOOGLE_SCRIPT_URL_HIER"; // <--- hier deine Web App URL einfügen
-
-// Alle Buchungen speichern
+/***********************
+ * GLOBALE DATEN
+ ***********************/
+let playerAK = {};
 let bookings = [];
+let akUsage = {};
 
-// Dauer in Stunden berechnen
-function calculateDuration(start, end) {
+/***********************
+ * SPIELER AUS SHEETS LADEN
+ ***********************/
+async function loadPlayers() {
+  const res = await fetch(webAppUrl);
+  playerAK = await res.json();
+}
+
+/***********************
+ * DAUER BERECHNEN
+ ***********************/
+function calcDuration(start, end) {
   const [sh, sm] = start.split(":").map(Number);
   const [eh, em] = end.split(":").map(Number);
-  return (eh + em/60) - (sh + sm/60);
+  return (eh * 60 + em - (sh * 60 + sm)) / 60;
 }
 
-// Spieler-Daten aus Google Sheets laden
-let playerAK = {};
-let akUsage = {}; // genutzte Stunden pro AK
+/***********************
+ * BUCHEN
+ ***********************/
+async function book() {
+  await loadPlayers();
 
-function loadPlayerData(callback) {
-  fetch(webAppUrl)
-    .then(res => res.json())
-    .then(data => {
-      playerAK = {};
-      akUsage = {};
-      // Alle Keys aus Sheet holen, immer als String
-      Object.keys(data).forEach(key => {
-        const k = String(key).trim();
-        playerAK[k] = data[key];
-        if(!akUsage[data[key]]) akUsage[data[key]] = 0;
-      });
-      if(callback) callback();
-    })
-    .catch(err => console.error("Fehler beim Laden der Spieler-Daten:", err));
-}
-
-// Buchung prüfen und speichern
-function book() {
   const date = document.getElementById("date").value;
   const start = document.getElementById("start").value;
   const end = document.getElementById("end").value;
   const simulator = document.getElementById("simulator").value;
   const numPlayers = parseInt(document.getElementById("numPlayers").value);
-  const playerNumbers = document.getElementById("playerNumbers").value.split(",").map(s => s.trim());
+  const playerNumbers = document.getElementById("playerNumbers")
+    .value.split(",")
+    .map(n => n.trim());
 
-  // Grundprüfungen
-  if(!date || !start || !end || !numPlayers || !playerNumbers.length) {
-    showResult("Bitte alle Felder ausfüllen!", false);
+  if (!date || !start || !end || playerNumbers.length !== numPlayers) {
+    showResult("Bitte alle Felder korrekt ausfüllen", false);
     return;
   }
 
-  if(playerNumbers.length != numPlayers) {
-    showResult("Anzahl Spieler stimmt nicht mit DGV-Nummern überein!", false);
+  const duration = calcDuration(start, end);
+  if (duration <= 0) {
+    showResult("Endzeit muss nach Startzeit liegen", false);
     return;
   }
 
-  if(calculateDuration(start, end) <= 0) {
-    showResult("Endzeit muss nach Startzeit liegen!", false);
-    return;
-  }
+  // AK ermitteln
+  let akSet = new Set();
+  let unknown = [];
 
-  // Prüfen, ob Spieler existieren und in derselben AK
-  const akSet = new Set();
-  let unknownPlayers = [];
-  playerNumbers.forEach(num => {
-    const n = String(num).trim(); // Eingabe immer als String
-    if(playerAK[n]) {
-      akSet.add(playerAK[n]);
-    } else {
-      unknownPlayers.push(num);
-    }
+  playerNumbers.forEach(n => {
+    if (playerAK[n]) akSet.add(playerAK[n]);
+    else unknown.push(n);
   });
 
-  if(unknownPlayers.length > 0) {
-    showResult("Unbekannte Spieler: " + unknownPlayers.join(", "), false);
+  if (unknown.length > 0) {
+    showResult("Unbekannte Spieler: " + unknown.join(", "), false);
     return;
   }
 
-  if(akSet.size > 1) {
-    showResult("Spieler gehören zu unterschiedlichen AKs!", false);
+  if (akSet.size !== 1) {
+    showResult("Spieler gehören zu unterschiedlichen AKs", false);
     return;
   }
 
   const ak = [...akSet][0];
+  akUsage[ak] = akUsage[ak] || 0;
 
-  // Kontingent prüfen
-  const duration = calculateDuration(start, end);
-  if((akUsage[ak] || 0) + duration > 4) {
-    showResult(`Kontingent für ${ak} ausgeschöpft!`, false);
+  if (akUsage[ak] + duration > MAX_HOURS_PER_AK) {
+    showResult(`Kontingent für ${ak} ausgeschöpft`, false);
     return;
   }
 
-  // Alles ok, Buchung speichern
-  bookings.push({
-    date, start, end, simulator, numPlayers, playerNumbers, ak
-  });
+  // Buchung speichern
+  bookings.push({ date, start, end, simulator, ak, players: playerNumbers });
+  akUsage[ak] += duration;
 
-  akUsage[ak] = (akUsage[ak] || 0) + duration;
-
-  showResult("Gebucht!", true);
+  showResult("Gebucht ✅", true);
   updateStats();
 }
 
-// Ergebnis anzeigen
+/***********************
+ * AUSGABE
+ ***********************/
 function showResult(msg, success) {
   const el = document.getElementById("bookingResult");
   el.innerText = msg;
   el.style.color = success ? "lime" : "red";
 }
 
-// Adminbereich freischalten
+/***********************
+ * ADMIN LOGIN
+ ***********************/
 function unlockAdmin() {
-  const pass = document.getElementById("adminPass").value;
-  if(pass === adminPassword) {
+  if (document.getElementById("adminPass").value === adminPassword) {
     document.getElementById("adminPanel").style.display = "block";
-    loadAdminData();
+    loadAdmin();
   } else {
-    alert("Falsches Passwort!");
+    alert("Falsches Passwort");
   }
 }
 
-// Adminbereich laden
-function loadAdminData() {
-  const playerDiv = document.getElementById("playerTable");
-  playerDiv.innerHTML = "<h4>Alle Buchungen</h4>";
-  if(bookings.length === 0){
-    playerDiv.innerHTML += "<p>Keine Buchungen vorhanden</p>";
-  } else {
-    const table = document.createElement("table");
-    table.innerHTML = "<tr><th>Datum</th><th>Start</th><th>Ende</th><th>Sim</th><th>AK</th><th>Spieler</th><th>Löschen</th></tr>";
-    bookings.forEach((b, i) => {
-      const row = table.insertRow();
-      row.insertCell().innerText = b.date;
-      row.insertCell().innerText = b.start;
-      row.insertCell().innerText = b.end;
-      row.insertCell().innerText = b.simulator;
-      row.insertCell().innerText = b.ak;
-      row.insertCell().innerText = b.playerNumbers.join(", ");
-      const btn = document.createElement("button");
-      btn.innerText = "Löschen";
-      btn.onclick = () => deleteBooking(i);
-      row.insertCell().appendChild(btn);
-    });
-    playerDiv.appendChild(table);
+/***********************
+ * ADMIN DATEN
+ ***********************/
+function loadAdmin() {
+  const div = document.getElementById("playerTable");
+  div.innerHTML = "";
+
+  if (bookings.length === 0) {
+    div.innerHTML = "<p>Keine Buchungen</p>";
+    return;
   }
 
+  let html = `<table>
+    <tr>
+      <th>Datum</th><th>Start</th><th>Ende</th>
+      <th>Simulator</th><th>AK</th><th>Spieler</th><th>Löschen</th>
+    </tr>`;
+
+  bookings.forEach((b, i) => {
+    html += `<tr>
+      <td>${b.date}</td>
+      <td>${b.start}</td>
+      <td>${b.end}</td>
+      <td>${b.simulator}</td>
+      <td>${b.ak}</td>
+      <td>${b.players.join(", ")}</td>
+      <td><button onclick="deleteBooking(${i})">X</button></td>
+    </tr>`;
+  });
+
+  html += "</table>";
+  div.innerHTML = html;
   updateStats();
 }
 
-// Buchung löschen
-function deleteBooking(index) {
-  const b = bookings[index];
-  const duration = calculateDuration(b.start, b.end);
+/***********************
+ * BUCHUNG LÖSCHEN
+ ***********************/
+function deleteBooking(i) {
+  const b = bookings[i];
+  const duration = calcDuration(b.start, b.end);
   akUsage[b.ak] -= duration;
-  bookings.splice(index, 1);
-  loadAdminData();
+  bookings.splice(i, 1);
+  loadAdmin();
 }
 
-// Statistik aktualisieren
+/***********************
+ * STATISTIK
+ ***********************/
 function updateStats() {
-  const statsDiv = document.getElementById("stats");
-  statsDiv.innerHTML = "<h4>AK Statistik</h4>";
-  let html = "<table><tr><th>AK</th><th>genutzt</th><th>übrig</th></tr>";
-  for(const ak in akUsage) {
-    const used = akUsage[ak];
-    const remaining = Math.max(4 - used, 0);
-    html += `<tr><td>${ak}</td><td>${used}</td><td>${remaining}</td></tr>`;
-  }
-  html += "</table>";
-  statsDiv.innerHTML = html;
-}
+  const div = document.getElementById("stats");
+  let html = `<table>
+    <tr><th>AK</th><th>Genutzt</th><th>Übrig</th></tr>`;
 
-// Beim Laden der Seite Spieler-Daten laden
-window.onload = () => loadPlayerData();
+  for (const ak in akUsage) {
+    html += `<tr>
+      <td>${ak}</td>
+      <td>${akUsage[ak]}</td>
+      <td>${Math.max(0, MAX_HOURS_PER_AK - akUsage[ak])}</td>
+    </tr>`;
+  }
+
+  html += "</table>";
+  div.innerHTML = html;
+}
