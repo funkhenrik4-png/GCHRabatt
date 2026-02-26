@@ -1,14 +1,15 @@
 /************************************************
- * GCH RABATT – FRONTEND SCRIPT
+ * GCH RABATT – Frontend Script
+ * Funktioniert direkt mit deinem Google Sheets
  ************************************************/
 
-// 🔗 HIER DEINE GOOGLE APPS SCRIPT URL
-const webAppUrl = "HIER_DEINE_WEBAPP_URL_EINFÜGEN";
+// 🔗 Web-App URL
+const webAppUrl = "https://script.google.com/macros/s/AKfycbwiJz2OC2CoNYzKWXy3qsPT6dycxA2mDn9Jh_LDZmbTRp2dcPeSVlLWwa82egVNzYHr3g/exec";
 
-// 🔐 Admin-Passwort
+// 🔐 Admin Passwort
 const adminPassword = "Matchplay";
 
-// Daten aus Google Sheets
+// Spieler + Buchungen aus Sheets
 let playerAK = {};
 let bookings = [];
 
@@ -20,18 +21,14 @@ window.onload = async () => {
 };
 
 /* =========================
-   DATEN LADEN
+   SPIELER & BUCHUNGEN LADEN
    ========================= */
 async function loadDataFromSheets() {
   const res = await fetch(webAppUrl);
   const data = await res.json();
-
   playerAK = data.players || {};
   bookings = data.bookings || [];
-
-  console.log("Spieler:", playerAK);
-  console.log("Buchungen:", bookings);
-}
+};
 
 /* =========================
    BUCHUNG
@@ -75,7 +72,7 @@ function book() {
 
   const ak = [...akSet][0];
 
-  // ➜ BUCHUNG AN GOOGLE SHEETS SENDEN
+  // POST an Google Sheets Web-App
   fetch(webAppUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -93,6 +90,16 @@ function book() {
       if (data.status === "ok") {
         showResult("Gebucht ✅ – Preis: " + data.price + " €", true);
         loadAdminData();
+        // Formular nach 7 Sekunden zurücksetzen
+        setTimeout(() => {
+          document.getElementById("date").value = "";
+          document.getElementById("start").value = "";
+          document.getElementById("end").value = "";
+          document.getElementById("simulator").value = "";
+          document.getElementById("numPlayers").value = "";
+          document.getElementById("playerNumbers").value = "";
+          document.getElementById("bookingResult").innerText = "";
+        }, 7000);
       } else {
         showResult("Fehler beim Speichern", false);
       }
@@ -125,16 +132,14 @@ function unlockAdmin() {
 }
 
 /* =========================
-   ADMIN DATEN (AUS SHEETS)
+   ADMIN DATEN LADEN
    ========================= */
 function loadAdminData() {
   fetch(webAppUrl)
     .then(res => res.json())
     .then(data => {
       bookings = data.bookings || [];
-
       const div = document.getElementById("adminBookings");
-
       if (bookings.length === 0) {
         div.innerHTML = "<p>Keine Buchungen vorhanden</p>";
         return;
