@@ -1,31 +1,39 @@
 // Admin-Passwort
 const adminPassword = "Matchplay";
 
-// Beispiel-Daten: DGV-Nummer => AK
-const playerAK = {
-  "123": "AK30",
-  "124": "AK30",
-  "125": "AK40",
-  "126": "AK30",
-  "127": "AK65"
-  // Hier alle weiteren Spieler einfügen
-};
+// Google Sheets Web App URL
+const webAppUrl = "DEINE_GOOGLE_SCRIPT_URL_HIER"; // <--- hier deine Web App URL einfügen
 
 // Bisherige Nutzung pro AK (Stunden)
-let akUsage = {
-  "AK30": 0,
-  "AK40": 0,
-  "AK65": 0
-};
+let akUsage = {};
 
 // Alle Buchungen speichern
 let bookings = [];
+
+// Spieler-Daten aus Sheets
+let playerAK = {};
 
 // Dauer in Stunden berechnen
 function calculateDuration(start, end) {
   const [sh, sm] = start.split(":").map(Number);
   const [eh, em] = end.split(":").map(Number);
   return (eh + em/60) - (sh + sm/60);
+}
+
+// Spieler-Daten aus Google Sheet laden
+function loadPlayerData(callback) {
+  fetch(webAppUrl)
+    .then(res => res.json())
+    .then(data => {
+      playerAK = data; // z.B. { "123": "AK30", "124": "AK30" }
+      // AK-Usage initialisieren
+      akUsage = {};
+      Object.values(playerAK).forEach(ak => {
+        if (!akUsage[ak]) akUsage[ak] = 0;
+      });
+      if(callback) callback();
+    })
+    .catch(err => console.error("Fehler beim Laden der Spieler-Daten:", err));
 }
 
 // Buchung prüfen und speichern
@@ -162,3 +170,6 @@ function updateStats() {
   html += "</table>";
   statsDiv.innerHTML = html;
 }
+
+// Beim Laden der Seite Spieler-Daten laden
+window.onload = () => loadPlayerData();
