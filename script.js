@@ -1,50 +1,56 @@
-/***********************
- * KONFIGURATION
- ***********************/
+/*************************
+ * KONFIG
+ *************************/
 const webAppUrl = "https://script.google.com/macros/s/AKfycbybwhWvvO_Qb0UhbN_GYTQmLamEh0p6Bx_fbkDO-G3iIpKB7r6uC0inRG1sQIUFTnhceg/exec";
 const adminPassword = "Matchplay";
 const MAX_HOURS_PER_AK = 4;
 
-/***********************
+/*************************
  * GLOBALE DATEN
- ***********************/
+ *************************/
 let playerAK = {};
 let bookings = [];
 let akUsage = {};
 
-/***********************
- * SPIELER AUS SHEETS LADEN
- ***********************/
-async function loadPlayers() {
+/*************************
+ * SPIELER BEIM SEITENSTART LADEN
+ *************************/
+window.onload = async function () {
   const res = await fetch(webAppUrl);
   playerAK = await res.json();
-}
+  console.log("Spieler geladen:", playerAK);
+};
 
-/***********************
- * DAUER BERECHNEN
- ***********************/
+/*************************
+ * HILFSFUNKTIONEN
+ *************************/
 function calcDuration(start, end) {
   const [sh, sm] = start.split(":").map(Number);
   const [eh, em] = end.split(":").map(Number);
   return (eh * 60 + em - (sh * 60 + sm)) / 60;
 }
 
-/***********************
- * BUCHEN
- ***********************/
-async function book() {
-  await loadPlayers();
+function showResult(msg, ok) {
+  const el = document.getElementById("bookingResult");
+  el.innerText = msg;
+  el.style.color = ok ? "lime" : "red";
+}
 
+/*************************
+ * BUCHUNG
+ *************************/
+function book() {
   const date = document.getElementById("date").value;
   const start = document.getElementById("start").value;
   const end = document.getElementById("end").value;
   const simulator = document.getElementById("simulator").value;
   const numPlayers = parseInt(document.getElementById("numPlayers").value);
-  const playerNumbers = document.getElementById("playerNumbers")
+  const players = document
+    .getElementById("playerNumbers")
     .value.split(",")
-    .map(n => n.trim());
+    .map(p => p.trim());
 
-  if (!date || !start || !end || playerNumbers.length !== numPlayers) {
+  if (!date || !start || !end || players.length !== numPlayers) {
     showResult("Bitte alle Felder korrekt ausfüllen", false);
     return;
   }
@@ -55,13 +61,12 @@ async function book() {
     return;
   }
 
-  // AK ermitteln
   let akSet = new Set();
   let unknown = [];
 
-  playerNumbers.forEach(n => {
-    if (playerAK[n]) akSet.add(playerAK[n]);
-    else unknown.push(n);
+  players.forEach(p => {
+    if (playerAK[p]) akSet.add(playerAK[p]);
+    else unknown.push(p);
   });
 
   if (unknown.length > 0) {
@@ -82,59 +87,40 @@ async function book() {
     return;
   }
 
-  // Buchung speichern
-  bookings.push({ date, start, end, simulator, ak, players: playerNumbers });
+  bookings.push({ date, start, end, simulator, ak, players });
   akUsage[ak] += duration;
 
   showResult("Gebucht ✅", true);
   updateStats();
 }
 
-/***********************
- * AUSGABE
- ***********************/
-function showResult(msg, success) {
-  const el = document.getElementById("bookingResult");
-  el.innerText = msg;
-  el.style.color = success ? "lime" : "red";
-}
-
-/***********************
- * ADMIN LOGIN
- ***********************/
+/*************************
+ * ADMIN
+ *************************/
 function unlockAdmin() {
   if (document.getElementById("adminPass").value === adminPassword) {
     document.getElementById("adminPanel").style.display = "block";
-    loadAdmin();
+    renderAdmin();
   } else {
     alert("Falsches Passwort");
   }
 }
 
-/***********************
- * ADMIN DATEN
- ***********************/
-function loadAdmin() {
+function renderAdmin() {
   const div = document.getElementById("playerTable");
-  div.innerHTML = "";
-
   if (bookings.length === 0) {
     div.innerHTML = "<p>Keine Buchungen</p>";
     return;
   }
 
   let html = `<table>
-    <tr>
-      <th>Datum</th><th>Start</th><th>Ende</th>
-      <th>Simulator</th><th>AK</th><th>Spieler</th><th>Löschen</th>
-    </tr>`;
+    <tr><th>Datum</th><th>Start</th><th>Ende</th><th>AK</th><th>Spieler</th><th></th></tr>`;
 
   bookings.forEach((b, i) => {
     html += `<tr>
       <td>${b.date}</td>
       <td>${b.start}</td>
       <td>${b.end}</td>
-      <td>${b.simulator}</td>
       <td>${b.ak}</td>
       <td>${b.players.join(", ")}</td>
       <td><button onclick="deleteBooking(${i})">X</button></td>
@@ -146,25 +132,19 @@ function loadAdmin() {
   updateStats();
 }
 
-/***********************
- * BUCHUNG LÖSCHEN
- ***********************/
 function deleteBooking(i) {
   const b = bookings[i];
-  const duration = calcDuration(b.start, b.end);
-  akUsage[b.ak] -= duration;
+  akUsage[b.ak] -= calcDuration(b.start, b.end);
   bookings.splice(i, 1);
-  loadAdmin();
+  renderAdmin();
 }
 
-/***********************
+/*************************
  * STATISTIK
- ***********************/
+ *************************/
 function updateStats() {
   const div = document.getElementById("stats");
-  let html = `<table>
-    <tr><th>AK</th><th>Genutzt</th><th>Übrig</th></tr>`;
-
+  let html = `<table><tr><th>AK</th><th>Genutzt</th><th>Übrig</th></tr>`;
   for (const ak in akUsage) {
     html += `<tr>
       <td>${ak}</td>
@@ -172,7 +152,6 @@ function updateStats() {
       <td>${Math.max(0, MAX_HOURS_PER_AK - akUsage[ak])}</td>
     </tr>`;
   }
-
   html += "</table>";
   div.innerHTML = html;
 }
