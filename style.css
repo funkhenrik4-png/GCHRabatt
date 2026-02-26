@@ -1,24 +1,111 @@
-body { 
-  font-family: Arial, sans-serif; 
-  margin: 20px;
+/* Grundlayout */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f8;
+  color: #333;
+  margin: 0;
+  padding: 0;
 }
 
-.green { 
-  color: green; 
-  font-weight: bold; 
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 25px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
-.red { 
-  color: red; 
-  font-weight: bold; 
+header {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-table, th, td { 
-  border: 1px solid black; 
-  border-collapse: collapse; 
-  padding: 5px; 
+header h1 {
+  color: #00796b;
+  margin-bottom: 5px;
 }
 
-input, select, textarea, button { 
-  margin: 5px 0; 
+header p {
+  color: #555;
+  font-size: 1rem;
+}
+
+/* Formulare */
+.form-section, .admin-section {
+  margin-bottom: 40px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: #00796b;
+  outline: none;
+}
+
+/* Buttons */
+.btn {
+  background-color: #00796b;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background-color: #004d40;
+}
+
+/* Ergebnisse / Tabellen */
+#bookingResult {
+  margin-top: 15px;
+  font-weight: 600;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+table th, table td {
+  padding: 12px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+table th {
+  background-color: #00796b;
+  color: white;
+}
+
+/* Adminbereich */
+.admin-section {
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
 }
