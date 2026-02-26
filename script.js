@@ -1,64 +1,65 @@
-const adminPassword = "matchplay"; // ändere das Passwort auf ein sicheres
+const webAppUrl = "DEINE_GOOGLE_SCRIPT_URL"; // hier deine Google Apps Script URL einfügen
+const adminPassword = "geheimespasswort"; // Passwort für Adminbereich
 
-function unlockAdmin(){
-  let input = document.getElementById("adminPass").value;
-  if(input === adminPassword){
-    document.getElementById("adminPanel").style.display = "block";
-    alert("Adminbereich freigeschaltet");
-    loadAdminData();
-  } else {
-    alert("Zugriff verweigert");
-  }
-}
-
-function book(){
+// Buchungsfunktion
+function book() {
   const date = document.getElementById("date").value;
   const start = document.getElementById("start").value;
   const end = document.getElementById("end").value;
-  const numPlayers = parseInt(document.getElementById("numPlayers").value);
   const simulator = document.getElementById("simulator").value;
-  const playerNumbers = document.getElementById("playerNumbers").value.split(",").map(x=>x.trim());
-
-  if(numPlayers < 3){
-    document.getElementById("bookingResult").innerHTML = "<span class='red'>Unzulässig – mindestens 3 Spieler</span>";
-    return;
-  }
-
-  // Hier Web-App URL einfügen
-  const webAppUrl = "https://script.google.com/macros/s/AKfycbxEugQCAXnmaft1NA561rVC9poxptzABXtTUU3dNf6K3zmyz7tctCWwUv73SgwbZrpN/exec";
+  const numPlayers = parseInt(document.getElementById("numPlayers").value);
+  const playerNumbers = document.getElementById("playerNumbers").value.split(",");
 
   fetch(webAppUrl, {
     method: "POST",
     body: JSON.stringify({
-      date,
-      start,
-      end,
-      simulator,
-      playerNumbers
+      date, start, end, simulator, numPlayers, playerNumbers
     })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if(data.status === "gebucht"){
-      document.getElementById("bookingResult").innerHTML = "<span class='green'>Gebucht ✅</span>";
-    } else {
-      document.getElementById("bookingResult").innerHTML = "<span class='red'>Unzulässig ❌: " + data.reason + "</span>";
-    }
-  });
+  }).then(res => res.json())
+    .then(data => {
+      const result = document.getElementById("bookingResult");
+      if(data.status === "gebucht") {
+        result.style.color = "green";
+        result.innerText = "Gebucht ✅";
+      } else {
+        result.style.color = "red";
+        result.innerText = "Unzulässig ❌: " + data.reason;
+      }
+    });
 }
 
-function loadAdminData(){
-  const webAppUrl = "DEINE_GOOGLE_SCRIPT_URL";
-  fetch(webAppUrl)
-  .then(res => res.json())
-  .then(data => {
-    let html = "<table><tr><th>DGV</th><th>AK</th></tr>";
-    data.players.forEach(p => {
-      html += `<tr><td>${p.DGV}</td><td>${p.AK}</td></tr>`;
-    });
-    html += "</table>";
-    document.getElementById("playerTable").innerHTML = html;
+// Adminbereich freischalten
+function unlockAdmin() {
+  const pass = document.getElementById("adminPass").value;
+  if(pass === adminPassword) {
+    document.getElementById("adminPanel").style.display = "block";
+    loadAdminData();
+  } else {
+    alert("Falsches Passwort!");
+  }
+}
 
-    // Optional: Buchungen / Statistiken
-  });
+// Admindaten laden
+function loadAdminData() {
+  fetch(webAppUrl)
+    .then(res => res.json())
+    .then(data => {
+      // Spieler anzeigen
+      const playerDiv = document.getElementById("playerTable");
+      let html = "<table><tr><th>DGV</th><th>AK</th></tr>";
+      data.players.forEach(p => {
+        html += `<tr><td>${p.DGV}</td><td>${p.AK}</td></tr>`;
+      });
+      html += "</table>";
+      playerDiv.innerHTML = html;
+
+      // Buchungen anzeigen
+      const statsDiv = document.getElementById("stats");
+      let html2 = "<table><tr><th>Datum</th><th>Start</th><th>Ende</th><th>AK</th><th>Simulator</th><th>Dauer</th></tr>";
+      data.bookings.forEach(b => {
+        html2 += `<tr><td>${b.Datum}</td><td>${b.Start}</td><td>${b.Ende}</td><td>${b.AK}</td><td>${b.Simulator}</td><td>${b.Dauer}</td></tr>`;
+      });
+      html2 += "</table>";
+      statsDiv.innerHTML = html2;
+    });
 }
