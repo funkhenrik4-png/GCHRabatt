@@ -4,7 +4,7 @@
  ************************************************/
 
 // 🔗 Web-App URL
-const webAppUrl = "https://script.google.com/macros/s/AKfycbznW9L_T4nX1i6HLQqmN5d35SgL_Zw_tEiLFI52KLiCJF6Vv5-Z9mgwLQ8g4EphmY408Q/exec";
+const webAppUrl = "https://script.google.com/macros/s/AKfycbwiJz2OC2CoNYzKWXy3qsPT6dycxA2mDn9Jh_LDZmbTRp2dcPeSVlLWwa82egVNzYHr3g/exec";
 
 // 🔐 Admin Passwort
 const adminPassword = "Matchplay";
@@ -24,10 +24,14 @@ window.onload = async () => {
    SPIELER & BUCHUNGEN LADEN
    ========================= */
 async function loadDataFromSheets() {
-  const res = await fetch(webAppUrl);
-  const data = await res.json();
-  playerAK = data.players || {};
-  bookings = data.bookings || [];
+  try {
+    const res = await fetch(webAppUrl);
+    const data = await res.json();
+    playerAK = data.players || {};
+    bookings = data.bookings || [];
+  } catch (err) {
+    console.error("Fehler beim Laden der Daten:", err);
+  }
 };
 
 /* =========================
@@ -41,9 +45,11 @@ function book() {
   const numPlayers = parseInt(document.getElementById("numPlayers").value);
   const playerNumbers = document
     .getElementById("playerNumbers")
-    .value.split(",")
-    .map(p => p.trim())
-    .filter(p => p !== "");
+    .value
+    .split(",")
+    .map(p => p.trim())       // Leerzeichen entfernen
+    .map(p => String(p))      // als String sichern
+    .filter(p => p !== "");   // leere Werte entfernen
 
   if (!date || !start || !end || !numPlayers || playerNumbers.length === 0) {
     showResult("Bitte alle Felder ausfüllen", false);
@@ -58,7 +64,7 @@ function book() {
   // AK prüfen
   const akSet = new Set();
   for (let p of playerNumbers) {
-    if (!playerAK[p]) {
+    if (!playerAK.hasOwnProperty(p)) {
       showResult("Unbekannter Spieler: " + p, false);
       return;
     }
