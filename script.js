@@ -1,5 +1,5 @@
 const webAppUrl = "DEINE_GOOGLE_SCRIPT_URL"; // hier Google Apps Script URL einfügen
-const adminPassword = "geheimespasswort"; // Passwort Adminbereich
+const adminPassword = "matchplay"; // Passwort Adminbereich
 
 // Buchung
 function book() {
