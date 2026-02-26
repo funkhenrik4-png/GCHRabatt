@@ -24,10 +24,10 @@ function loadPlayerData(callback) {
     .then(data => {
       playerAK = {};
       akUsage = {};
-      // Alle Keys aus Sheet holen
+      // Alle Keys aus Sheet holen, immer als String
       Object.keys(data).forEach(key => {
-        const n = Number(key); // Zahl konvertieren, falls nötig
-        playerAK[n] = data[key];
+        const k = String(key).trim();
+        playerAK[k] = data[key];
         if(!akUsage[data[key]]) akUsage[data[key]] = 0;
       });
       if(callback) callback();
@@ -64,7 +64,7 @@ function book() {
   const akSet = new Set();
   let unknownPlayers = [];
   playerNumbers.forEach(num => {
-    const n = Number(num); // Text → Zahl
+    const n = String(num).trim(); // Eingabe immer als String
     if(playerAK[n]) {
       akSet.add(playerAK[n]);
     } else {
