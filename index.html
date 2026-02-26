@@ -4,45 +4,86 @@
 <meta charset="UTF-8">
 <title>Golf Simulator Buchung</title>
 <link rel="stylesheet" href="style.css">
-<script src="script.js"></script>
 </head>
 <body>
+<div class="container">
 
-<h1>Golf Simulator Buchung</h1>
+  <header>
+    <h1>Golf Simulator Buchung</h1>
+    <p>Prüfe AK-Kontingente & buche bequem online</p>
+  </header>
 
-<!-- Buchungsbereich -->
-<div id="bookingSection">
-  <label>Datum:</label><input type="date" id="date"><br>
-  <label>Start:</label><input type="time" id="start"><br>
-  <label>Ende:</label><input type="time" id="end"><br>
-  <label>Anzahl Spieler:</label><input type="number" id="numPlayers" min="3"><br>
-  <label>Simulator:</label>
-  <select id="simulator">
-    <option>1</option><option>2</option><option>3</option>
-    <option>4</option><option>5</option><option>6</option>
-    <option>7</option><option>8</option>
-  </select><br>
-  <label>Spieler DGV-Nummern (Komma getrennt):</label><br>
-  <textarea id="playerNumbers"></textarea><br>
-  <button onclick="book()">Buchen / Prüfen</button>
-  <div id="bookingResult"></div>
+  <!-- Buchungsformular -->
+  <section class="form-section">
+    <h2>Buchung</h2>
+    <form id="bookingForm">
+      <div class="form-group">
+        <label>Datum:</label>
+        <input type="date" id="date" required>
+      </div>
+
+      <div class="form-group">
+        <label>Startzeit:</label>
+        <input type="time" id="start" required>
+      </div>
+
+      <div class="form-group">
+        <label>Endzeit:</label>
+        <input type="time" id="end" required>
+      </div>
+
+      <div class="form-group">
+        <label>Simulator:</label>
+        <select id="simulator">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Anzahl Spieler:</label>
+        <input type="number" id="numPlayers" min="3" required>
+      </div>
+
+      <div class="form-group">
+        <label>DGV-Nummern (kommagetrennt):</label>
+        <input type="text" id="playerNumbers" placeholder="123,124,125" required>
+      </div>
+
+      <button type="button" onclick="book()" class="btn">Buchen</button>
+    </form>
+
+    <div id="bookingResult"></div>
+  </section>
+
+  <hr>
+
+  <!-- Adminbereich -->
+  <section class="admin-section">
+    <h2>Adminbereich</h2>
+    <div class="form-group">
+      <label>Passwort:</label>
+      <input type="password" id="adminPass">
+      <button onclick="unlockAdmin()" class="btn">Adminbereich freischalten</button>
+    </div>
+
+    <div id="adminPanel" style="display:none;">
+      <h3>Spielerverwaltung</h3>
+      <div id="playerTable" class="table-container"></div>
+
+      <h3>Buchungen & Statistiken</h3>
+      <div id="stats" class="table-container"></div>
+    </div>
+  </section>
+
 </div>
 
-<hr>
-
-<!-- Adminbereich -->
-<div id="adminSection" style="display:none;">
-  <h2>Adminbereich</h2>
-  <label>Passwort:</label><input type="password" id="adminPass">
-  <button onclick="unlockAdmin()">Adminbereich freischalten</button>
-
-  <div id="adminPanel" style="display:none;">
-    <h3>Spielerverwaltung</h3>
-    <div id="playerTable"></div>
-    <h3>Buchungen & Statistiken</h3>
-    <div id="stats"></div>
-  </div>
-</div>
-
+<script src="script.js"></script>
 </body>
 </html>
