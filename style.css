@@ -1,8 +1,8 @@
 /* Grundlayout */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f4f6f8;
-  color: #333;
+  background: #000; /* Schwarz für weißes Logo */
+  color: #fff;
   margin: 0;
   padding: 0;
 }
@@ -11,9 +11,9 @@ body {
   max-width: 900px;
   margin: 30px auto;
   padding: 25px;
-  background: #fff;
+  background: #111; /* dunkler Container */
   border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 20px rgba(255,255,255,0.1);
 }
 
 header {
@@ -21,13 +21,20 @@ header {
   margin-bottom: 30px;
 }
 
+header .logo {
+  max-width: 200px;
+  height: auto;
+  display: block;
+  margin: 0 auto 10px auto;
+}
+
 header h1 {
-  color: #00796b;
+  color: #00ffcc;
   margin-bottom: 5px;
 }
 
 header p {
-  color: #555;
+  color: #aaa;
   font-size: 1rem;
 }
 
@@ -49,21 +56,22 @@ header p {
 .form-group input, .form-group select {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
   border-radius: 8px;
   box-sizing: border-box;
-  transition: 0.2s;
+  background: #222;
+  color: #fff;
 }
 
 .form-group input:focus, .form-group select:focus {
-  border-color: #00796b;
+  border-color: #00ffcc;
   outline: none;
 }
 
 /* Buttons */
 .btn {
-  background-color: #00796b;
-  color: #fff;
+  background-color: #00ffcc;
+  color: #000;
   border: none;
   padding: 12px 20px;
   border-radius: 8px;
@@ -73,7 +81,7 @@ header p {
 }
 
 .btn:hover {
-  background-color: #004d40;
+  background-color: #00cc99;
 }
 
 /* Ergebnisse / Tabellen */
@@ -91,21 +99,22 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
+  color: #fff;
 }
 
 table th, table td {
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
   text-align: left;
 }
 
 table th {
-  background-color: #00796b;
-  color: white;
+  background-color: #00ffcc;
+  color: #000;
 }
 
 /* Adminbereich */
 .admin-section {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #333;
   padding-top: 20px;
 }
